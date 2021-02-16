@@ -12,18 +12,25 @@ knitr::opts_chunk$set(
 )
 ```
 
-# appsilonRShinyTaskAarshBatra
+# appsilonRShinyTaskAarshBatraVersion2
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of appsilonRShinyTaskAarshBatra is to visualize the marine dataset to 
+The goal of appsilonRShinyTaskAarshBatraVersion2 is to visualize the marine dataset to 
 figure out the max distance travelled by a ship between two consecutive points 
 given all of its trips.
 
+# Improvements over the previous version
+
+* The initial error that was showing up (for the first few seconds) while rendering the map,
+is now resolved.
+
+* Better UI using grid graphics from the shiny.semantic library. 
+
 ## App
 
-* The app is deployed online at shinyapps.io. Click   [here](https://aarsh.shinyapps.io/appsilonRShinyTaskAarshBatra/) to view the app.
+* The app is deployed online at shinyapps.io. Click   [here](https://aarsh.shinyapps.io/appsilonRShinyTaskAarshBatraVersion2/) to view the app.
   
 * To view underlying app code, look into the **app.R** file.
 
