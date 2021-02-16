@@ -31,6 +31,40 @@ load("all.RData", .GlobalEnv)
 
 # testthat::test_file(path = "inst/tests/tests.R")
 
+# grid template for the app---------------------------------------------------
+
+gridTemplateMarineData <- shiny.semantic::grid_template(
+  default = list(
+    areas = rbind(
+      c("appLogo", "leafletMap"),
+      c("appTitle", "leafletMap"),
+      c("appPurposeInfo", "leafletMap"),
+      c("shipStatisticsBlank", "shipStatistics"),
+      c("contactInfo", "contactInfo")
+    ),
+    cols_width = c("300px",  "auto"),
+    rows_height = c("50px", "50px", "800px", "250px", "auto")
+  ),
+
+  mobile = list(
+    areas = rbind(
+      "appLogo",
+      "appTitle",
+      "appPurposeInfo",
+      "leafletMap",
+      "shipStatistics",
+      "contactInfo",
+      "shipStatisticsBlank"
+    ),
+
+    row_height = c("20px", "30px", "150px", "200px", "100px", "20px", "auto"),
+    cols_width = c("100%")
+  )
+)
+
+
+
+
 
 
 # making a marine data ui module-----------------------------------------------
@@ -40,39 +74,39 @@ load("all.RData", .GlobalEnv)
 # "Ship Type" is selected. The Map gets rendered automatically.
 marine_ui <- function(id){
   shiny.semantic::semanticPage(
-    tagList(
-      
-      shiny::tags$h1("Ships Travel Distance Visualizer"),
-      
-      shiny::tags$hr(),
-      
-      shiny::tags$br(),
-      leaflet::leafletOutput(NS(id, "leafletMap")),
-      
-      shiny::tags$br(),
-      div(class = "ui horizontal divider", "Select your ship"),
-      
-      shiny::tags$h3("Ship Type"),
-      shiny.semantic::dropdown_input(NS(id, "ship_type_dropdown"),
-                                     unique(cleaned_data$ship_type), value = "Cargo"),
-      
-      shiny::tags$br(),
-      shiny::tags$h3("Ship Name"),
-      shiny::uiOutput(NS(id, "ship_name_dropdown"))
-      
+
+    grid(gridTemplateMarineData,
+
+         appLogo = icon(class = "fas fa-ship"),
+         appTitle = h3("Ships Travel Distance Visualizer"),
+         appPurposeInfo = div(
+             shiny::tags$h3("Ship Type"),
+             shiny.semantic::dropdown_input(NS(id, "ship_type_dropdown"),
+                                            unique(cleaned_data$ship_type), value = "Cargo"),
+
+             shiny::tags$br(),
+             shiny::tags$h3("Ship Name"),
+             shiny::uiOutput(NS(id, "ship_name_dropdown"))
+
+         ),
+         leafletMap = leaflet::leafletOutput(NS(id, "leafletMap")),
+         shipStatistics = textOutput("shipStatistics"),
+         contactInfo = textOutput("contactInfo"),
+         shipStatisticsBlank = textOutput("shipStatisticsBlank")
+
     )
-    
+
   )
 }
 
 # marine data server module----------------------------------------------------
 marine_server <- function(id){
   shiny::moduleServer(id, function(input, output, session){
-    
+
     # Automatically update "ship_name" dropdown menu list once
     # "ship_type" is selected.
     output$ship_name_dropdown <- shiny::renderUI({
-      
+
       ns <- session$ns
       shiny.semantic::dropdown_input(ns("ship_name_dd_selected"),
                                      unique(cleaned_data[(cleaned_data$ship_type == input$ship_type_dropdown),
@@ -81,24 +115,24 @@ marine_server <- function(id){
                                        cleaned_data[(cleaned_data$ship_type == input$ship_type_dropdown),
                                                     "SHIPNAME"])[[1]][1]
       )
-      
+
     })
-    
+
     # render the leaflet map
     output$leafletMap <- leaflet::renderLeaflet({
-      
+
       data_for_leaflet_map <- shiny::reactive({max_dist_travelled(
         cleaned_data = cleaned_data, filter_ship_type = input$ship_type_dropdown,
         filter_ship_name = input$ship_name_dd_selected)})
-      
+
       icons <- leaflet::awesomeIcons(
         icon = 'fa-ship',
         iconColor = 'black',
         library = 'fa'
       )
-      
+
       leafletMapDisp <- eventReactive(c(input$ship_type_dropdpwn, input$ship_name_dd_selected ), {
-      
+
       leaflet::leaflet(padding = 4) %>%
         leaflet::setView(
           lng = unlist(data_for_leaflet_map()[[2]][(1:2), 1])[[1]][1],
@@ -116,15 +150,16 @@ marine_server <- function(id){
         ) %>% leaflet::addPolylines(lng =
                                       unlist(data_for_leaflet_map()[[2]][(1:2), 1]),
                                     lat = unlist(data_for_leaflet_map()[[2]][(1:2), 2]))
-      
+
       })
-      
+
+
       return(leafletMapDisp())
-      
+
     })
-    
+
   })
-  
+
 }
 
 # Modules definition complete=================================================#
