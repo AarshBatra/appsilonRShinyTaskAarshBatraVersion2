@@ -80,13 +80,13 @@ marine_ui <- function(id){
          appLogo = icon(class = "fas fa-ship"),
          appTitle = h3("Ships Travel Distance Visualizer"),
          appPurposeInfo = div(
-             shiny::tags$h3("Ship Type"),
-             shiny.semantic::dropdown_input(NS(id, "ship_type_dropdown"),
-                                            unique(cleaned_data$ship_type), value = "Cargo"),
+           shiny::tags$h3("Ship Type"),
+           shiny.semantic::dropdown_input(NS(id, "ship_type_dropdown"),
+                                          unique(cleaned_data$ship_type), value = "Cargo"),
 
-             shiny::tags$br(),
-             shiny::tags$h3("Ship Name"),
-             shiny::uiOutput(NS(id, "ship_name_dropdown"))
+           shiny::tags$br(),
+           shiny::tags$h3("Ship Name"),
+           shiny::uiOutput(NS(id, "ship_name_dropdown"))
 
          ),
          leafletMap = leaflet::leafletOutput(NS(id, "leafletMap")),
@@ -133,23 +133,23 @@ marine_server <- function(id){
 
       leafletMapDisp <- eventReactive(c(input$ship_type_dropdpwn, input$ship_name_dd_selected ), {
 
-      leaflet::leaflet(padding = 4) %>%
-        leaflet::setView(
-          lng = unlist(data_for_leaflet_map()[[2]][(1:2), 1])[[1]][1],
-          lat = unlist(data_for_leaflet_map()[[2]][(1:2), 2])[[1]][1] ,
-          zoom = 12) %>%
-        leaflet::addProviderTiles("Esri.WorldStreetMap") %>%
-        leaflet::addAwesomeMarkers(
-          data = data_for_leaflet_map()[[2]][, (1:2)], icon = icons,
-          label = stringr::str_c("Shipname: ",
-                                 data_for_leaflet_map()[[2]]$SHIPNAME[1], "---",
-                                 "Departing from: ", data_for_leaflet_map()[[2]]$DESTINATION[1],
-                                 "---", "Arriving at: ", data_for_leaflet_map()[[2]]$DESTINATION[2],
-                                 "---", "Distance Travelled (in meters): ",
-                                 data_for_leaflet_map()[[1]])
-        ) %>% leaflet::addPolylines(lng =
-                                      unlist(data_for_leaflet_map()[[2]][(1:2), 1]),
-                                    lat = unlist(data_for_leaflet_map()[[2]][(1:2), 2]))
+        leaflet::leaflet(padding = 4) %>%
+          leaflet::setView(
+            lng = unlist(data_for_leaflet_map()[[2]][(1:2), 1])[[1]][1],
+            lat = unlist(data_for_leaflet_map()[[2]][(1:2), 2])[[1]][1] ,
+            zoom = 12) %>%
+          leaflet::addProviderTiles("Esri.WorldStreetMap") %>%
+          leaflet::addAwesomeMarkers(
+            data = data_for_leaflet_map()[[2]][, (1:2)], icon = icons,
+            label = stringr::str_c("Shipname: ",
+                                   data_for_leaflet_map()[[2]]$SHIPNAME[1], "---",
+                                   "Departing from: ", data_for_leaflet_map()[[2]]$DESTINATION[1],
+                                   "---", "Arriving at: ", data_for_leaflet_map()[[2]]$DESTINATION[2],
+                                   "---", "Distance Travelled (in meters): ",
+                                   data_for_leaflet_map()[[1]])
+          ) %>% leaflet::addPolylines(lng =
+                                        unlist(data_for_leaflet_map()[[2]][(1:2), 1]),
+                                      lat = unlist(data_for_leaflet_map()[[2]][(1:2), 2]))
 
       })
 
@@ -183,4 +183,3 @@ server <- shinyServer(function(input, output, session){
 
 # create a Shiny app object
 shinyApp(ui = ui, server = server)
-
