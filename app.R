@@ -92,7 +92,9 @@ marine_ui <- function(id){
           shiny::tags$br(),
           shiny::tags$br(),
           shiny::tags$h3("Ship Name"),
-          shiny::uiOutput(NS(id, "ship_name_dropdown")),
+          shiny.semantic::dropdown_input(NS(id, "ship_name_dd_selected"),
+                                         unique((dplyr::filter(cleaned_data, ship_type == "Cargo"))$SHIPNAME),
+                                         value = (unique((dplyr::filter(cleaned_data, ship_type == "Cargo"))$SHIPNAME))[1]),
           shiny::tags$br(),
           shiny::tags$br(),
           shiny::tags$br(),
@@ -114,21 +116,31 @@ marine_ui <- function(id){
 marine_server <- function(id){
   shiny::moduleServer(id, function(input, output, session){
 
+   observeEvent(input$ship_type_dropdown, {
+     update_dropdown_input(session, "ship_name_dd_selected",
+                           choices = unique((dplyr::filter(cleaned_data, ship_type == input$ship_type_dropdown))$SHIPNAME),
+                           value = (unique((dplyr::filter(cleaned_data, ship_type == input$ship_type_dropdown))$SHIPNAME))[1])
+
+   })
+
+
+
+
 
     # Automatically update "ship_name" dropdown menu list once
     # "ship_type" is selected.
-    output$ship_name_dropdown <- shiny::renderUI({
-
-      ns <- session$ns
-      shiny.semantic::dropdown_input(ns("ship_name_dd_selected"),
-                                     unique(cleaned_data[(cleaned_data$ship_type == input$ship_type_dropdown),
-                                                         "SHIPNAME"]),
-                                     value = unique(
-                                       cleaned_data[(cleaned_data$ship_type == input$ship_type_dropdown),
-                                                    "SHIPNAME"])[[1]][1]
-      )
-
-    })
+    # output$ship_name_dropdown <- shiny::renderUI({
+    #
+    #   ns <- session$ns
+    #   shiny.semantic::dropdown_input(ns("ship_name_dd_selected"),
+    #                                  unique(cleaned_data[(cleaned_data$ship_type == input$ship_type_dropdown),
+    #                                                      "SHIPNAME"]),
+    #                                  value = unique(
+    #                                    cleaned_data[(cleaned_data$ship_type == input$ship_type_dropdown),
+    #                                                 "SHIPNAME"])[[1]][1]
+    #   )
+    #
+    # })
 
     # creating a filtered dataset that calculates max distance for choices selected.
     data_for_leaflet_map <- shiny::reactive({max_dist_travelled(
