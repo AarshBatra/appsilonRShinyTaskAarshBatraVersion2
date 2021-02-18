@@ -31,7 +31,6 @@ load("all.RData", .GlobalEnv)
 
 # testthat::test_file(path = "inst/tests/tests.R")
 
-# grid template for the app---------------------------------------------------
 
 gridTemplateMarineData <- shiny.semantic::grid_template(
   default = list(
@@ -39,11 +38,11 @@ gridTemplateMarineData <- shiny.semantic::grid_template(
       c("appLogo", "leafletMap"),
       c("appTitle", "leafletMap"),
       c("appPurposeInfo", "leafletMap"),
-      c("shipStatisticsBlank", "shipStatistics"),
+      c("appPurposeInfo", "leafletMap"),
       c("contactInfo", "contactInfo")
     ),
-    cols_width = c("300px",  "auto"),
-    rows_height = c("50px", "50px", "800px", "250px", "auto")
+    cols_width = c("600px",  "auto"),
+    rows_height = c("200px", "60px", "400px", "800px", "auto")
   ),
 
   mobile = list(
@@ -52,15 +51,15 @@ gridTemplateMarineData <- shiny.semantic::grid_template(
       "appTitle",
       "appPurposeInfo",
       "leafletMap",
-      "shipStatistics",
-      "contactInfo",
-      "shipStatisticsBlank"
+      "contactInfo"
     ),
 
-    row_height = c("20px", "30px", "150px", "200px", "100px", "20px", "auto"),
+    rows_height = c("150px", "50px", "500px", "300px", "auto"),
     cols_width = c("100%")
   )
 )
+
+
 
 
 
@@ -75,33 +74,46 @@ gridTemplateMarineData <- shiny.semantic::grid_template(
 marine_ui <- function(id){
   shiny.semantic::semanticPage(
 
-    grid(gridTemplateMarineData,
+    grid(
+      gridTemplateMarineData,
+      appLogo = tagList(
+        img(src = "logo.png", height = 150, width = 150)
+        ),
+      appTitle = tagList(
+        h1("Ships Travel Data Visualizer"),
+        shiny::tags$hr()
+        ),
+      appPurposeInfo =
+        tagList(
+          shiny::tags$br(),
+          shiny::tags$h3("Ship Type"),
+          shiny.semantic::dropdown_input(NS(id, "ship_type_dropdown"),
+                                         unique(cleaned_data$ship_type), value = "Cargo"),
+          shiny::tags$br(),
+          shiny::tags$br(),
+          shiny::tags$h3("Ship Name"),
+          shiny::uiOutput(NS(id, "ship_name_dropdown")),
+          shiny::tags$br(),
+          shiny::tags$br(),
+          shiny::tags$br(),
+          shiny::tags$h3("Travel Statistics"),
+          shiny::tags$hr(),
+          textOutput(NS(id, "shipStatistics"))
 
-         appLogo = icon(class = "fas fa-ship"),
-         appTitle = h3("Ships Travel Distance Visualizer"),
-         appPurposeInfo = div(
-           shiny::tags$h3("Ship Type"),
-           shiny.semantic::dropdown_input(NS(id, "ship_type_dropdown"),
-                                          unique(cleaned_data$ship_type), value = "Cargo"),
-
-           shiny::tags$br(),
-           shiny::tags$h3("Ship Name"),
-           shiny::uiOutput(NS(id, "ship_name_dropdown"))
-
-         ),
-         leafletMap = leaflet::leafletOutput(NS(id, "leafletMap")),
-         shipStatistics = textOutput("shipStatistics"),
-         contactInfo = textOutput("contactInfo"),
-         shipStatisticsBlank = textOutput("shipStatisticsBlank")
+        ),
+      leafletMap = leaflet::leafletOutput(NS(id, "leafletMap"), height = "95vh", width = "75vw"),
+      contactInfo = textOutput(NS(id, "contactInfo"))
 
     )
 
-  )
+)
+
 }
 
 # marine data server module----------------------------------------------------
 marine_server <- function(id){
   shiny::moduleServer(id, function(input, output, session){
+
 
     # Automatically update "ship_name" dropdown menu list once
     # "ship_type" is selected.
@@ -118,12 +130,14 @@ marine_server <- function(id){
 
     })
 
+    # creating a filtered dataset that calculates max distance for choices selected.
+    data_for_leaflet_map <- shiny::reactive({max_dist_travelled(
+      cleaned_data = cleaned_data, filter_ship_type = input$ship_type_dropdown,
+      filter_ship_name = input$ship_name_dd_selected)})
+
     # render the leaflet map
     output$leafletMap <- leaflet::renderLeaflet({
 
-      data_for_leaflet_map <- shiny::reactive({max_dist_travelled(
-        cleaned_data = cleaned_data, filter_ship_type = input$ship_type_dropdown,
-        filter_ship_name = input$ship_name_dd_selected)})
 
       icons <- leaflet::awesomeIcons(
         icon = 'fa-ship',
@@ -133,7 +147,7 @@ marine_server <- function(id){
 
       leafletMapDisp <- eventReactive(c(input$ship_type_dropdpwn, input$ship_name_dd_selected ), {
 
-        leaflet::leaflet(padding = 4) %>%
+        leaflet::leaflet(width = 10, height = 10) %>%
           leaflet::setView(
             lng = unlist(data_for_leaflet_map()[[2]][(1:2), 1])[[1]][1],
             lat = unlist(data_for_leaflet_map()[[2]][(1:2), 2])[[1]][1] ,
@@ -153,10 +167,19 @@ marine_server <- function(id){
 
       })
 
-
       return(leafletMapDisp())
 
     })
+
+    output$shipStatistics <- renderText({
+
+     sprintf(str_c("The maximum distance travelled by the ", input$ship_type_dropdown, " ship: ", input$ship_name_dd_selected,
+     " was ", round(data_for_leaflet_map()[[1]]), " meters ", " from ",
+     data_for_leaflet_map()[[2]]$DESTINATION[1], " to ", data_for_leaflet_map()[[2]]$DESTINATION[2]))
+
+
+    })
+
 
   })
 
@@ -170,7 +193,7 @@ marine_server <- function(id){
 # Note that: id for the marine data ui module matches the marine data
 # server module.
 ui <- shiny.semantic::semanticPage(
-  theme = "simplex",
+  theme = "cerulean",
   marine_ui("m1")
 )
 
@@ -183,3 +206,4 @@ server <- shinyServer(function(input, output, session){
 
 # create a Shiny app object
 shinyApp(ui = ui, server = server)
+
