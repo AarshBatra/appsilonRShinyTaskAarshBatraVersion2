@@ -31,7 +31,7 @@ load("all.RData", .GlobalEnv)
 
 # testthat::test_file(path = "inst/tests/tests.R")
 
-# specifying app higher level ui using "grid_template"
+# specifying app higher level ui using a "grid_template"
 gridTemplateMarineData <- shiny.semantic::grid_template(
   default = list(
     areas = rbind(
@@ -60,16 +60,6 @@ gridTemplateMarineData <- shiny.semantic::grid_template(
 )
 
 
-# # setting up accordion
-# accordion_content <- list(
-#   list(title = "How to Use?", content = "Testing accordion"),
-#   list(title = "Warning", content = "Warning")
-# )
-
-
-
-
-
 # making a marine data ui module-----------------------------------------------
 
 # Contains a header followed by a card, a map, and 2 dropdown menus.
@@ -77,7 +67,7 @@ gridTemplateMarineData <- shiny.semantic::grid_template(
 # "Ship Type" is selected. The Map gets rendered automatically.
 marine_ui <- function(id){
   shiny.semantic::semanticPage(
-    grid(
+    grid( # filling in the grid_template with ui elements
       gridTemplateMarineData,
       appLogo = tagList(
         img(src = "logo.png", height = 150, width = 150)
@@ -91,21 +81,26 @@ marine_ui <- function(id){
           shiny::tags$br(),
           shiny::tags$h3("Ship Type", icon("fa-ship")),
           shiny.semantic::dropdown_input(NS(id, "ship_type_dropdown"),
-                                         unique(cleaned_data$ship_type), value = "Cargo"),
+                                         unique(cleaned_data$ship_type),
+                                         value = "Cargo"),
           shiny::tags$h3("Ship Name", icon("fa-ship")),
           shiny.semantic::dropdown_input(NS(id, "ship_name_dd_selected"),
-                                         unique((dplyr::filter(cleaned_data, ship_type == "Cargo"))$SHIPNAME),
-                                         value = (unique((dplyr::filter(cleaned_data, ship_type == "Cargo"))$SHIPNAME))[1]),
+                                         unique((dplyr::filter(cleaned_data,
+                                          ship_type == "Cargo"))$SHIPNAME),
+            value = (unique((dplyr::filter(cleaned_data,
+                                    ship_type == "Cargo"))$SHIPNAME))[1]),
           shiny::tags$br(),
           message_box(class = "warning", header = "Note",
-                      content = "Map and summary statistics will load/update in a second.
-                      If the Map/Stats does not load/update, please refresh the page."),
-          shiny::tags$h3("Travel Statistics Summary"),
+                      content = "Map and summary statistics will
+                      load/update in 1 to 2 seconds. If the Map/Stats does not
+                      load/update, please refresh the page."),
+          shiny::tags$h3("Travel Summary Statistics"),
           shiny::tags$hr(),
           textOutput(NS(id, "shipStatistics"))
 
         ),
-      leafletMap = leaflet::leafletOutput(NS(id, "leafletMap"), height = "95vh"),
+      leafletMap = leaflet::leafletOutput(NS(id, "leafletMap"),
+                                          height = "95vh"),
       contactInfo = textOutput(NS(id, "contactInfo"))
 
     )
@@ -118,16 +113,22 @@ marine_ui <- function(id){
 marine_server <- function(id){
   shiny::moduleServer(id, function(input, output, session){
 
+
+  # update "ship name" dropdown menu list when "ship type" changes
    observeEvent(input$ship_type_dropdown, {
      update_dropdown_input(session, "ship_name_dd_selected",
-                           choices = unique((dplyr::filter(cleaned_data, ship_type == input$ship_type_dropdown))$SHIPNAME),
-                           value = (unique((dplyr::filter(cleaned_data, ship_type == input$ship_type_dropdown))$SHIPNAME))[1])
+                           choices = unique((dplyr::filter(cleaned_data,
+                        ship_type == input$ship_type_dropdown))$SHIPNAME),
+                           value = (unique((dplyr::filter(cleaned_data,
+                      ship_type == input$ship_type_dropdown))$SHIPNAME))[1])
 
    })
 
-    # creating a filtered dataset that calculates max distance for choices selected.
+    # creating a filtered reactive dataset that calculates max distance
+    # for choices selected.
     data_for_leaflet_map <- shiny::reactive({max_dist_travelled(
-      cleaned_data = cleaned_data, filter_ship_type = input$ship_type_dropdown,
+      cleaned_data = cleaned_data,
+      filter_ship_type = input$ship_type_dropdown,
       filter_ship_name = input$ship_name_dd_selected)})
 
     # render the leaflet map
@@ -140,7 +141,8 @@ marine_server <- function(id){
         library = 'fa'
       )
 
-      leafletMapDisp <- eventReactive(c(input$ship_type_dropdpwn, input$ship_name_dd_selected ), {
+      leafletMapDisp <- eventReactive(c(input$ship_type_dropdpwn,
+                                        input$ship_name_dd_selected ), {
 
         leaflet::leaflet(width = 10, height = 10) %>%
           leaflet::setView(
@@ -151,23 +153,28 @@ marine_server <- function(id){
           leaflet::addAwesomeMarkers(
             data = data_for_leaflet_map()[[2]][, (1:2)], icon = icons,
             label = stringr::str_c("Shipname: ",
-                                   data_for_leaflet_map()[[2]]$SHIPNAME[1], "---",
-                                   "Departing from: ", data_for_leaflet_map()[[2]]$DESTINATION[1],
-                                   "---", "Arriving at: ", data_for_leaflet_map()[[2]]$DESTINATION[2],
+                           data_for_leaflet_map()[[2]]$SHIPNAME[1], "---",
+                                   "Departing from: ",
+                                   data_for_leaflet_map()[[2]]$DESTINATION[1],
+                                   "---", "Arriving at: ",
+                                   data_for_leaflet_map()[[2]]$DESTINATION[2],
                                    "---", "Distance Travelled (in meters): ",
                                    data_for_leaflet_map()[[1]])
           ) %>% leaflet::addPolylines(lng =
-                                        unlist(data_for_leaflet_map()[[2]][(1:2), 1]),
-                                      lat = unlist(data_for_leaflet_map()[[2]][(1:2), 2])) %>%
+                     unlist(data_for_leaflet_map()[[2]][(1:2), 1]),
+                                lat = unlist(
+                              data_for_leaflet_map()[[2]][(1:2), 2])) %>%
           leaflet::addMiniMap() %>%
           leaflet::addMeasure()  %>%
           leaflet::addScaleBar() %>%
       leaflet::addEasyButton(leaflet::easyButton(
             icon="fa-crosshairs", title="Locate Me",
-            onClick = htmlwidgets::JS("function(btn, map){ map.locate({setView: true}); }"))) %>%
+            onClick = htmlwidgets::JS(
+              "function(btn, map){ map.locate({setView: true}); }"))) %>%
           leaflet::addEasyButton(leaflet::easyButton(
             icon="fa-globe", title="Zoom Out",
-            onClick = htmlwidgets::JS("function(btn, map){ map.setZoom(7); }"))) %>%
+            onClick = htmlwidgets::JS(
+              "function(btn, map){ map.setZoom(7); }"))) %>%
           leaflet.extras::addFullscreenControl() %>%
           leaflet.extras::addDrawToolbar()
 
@@ -177,11 +184,16 @@ marine_server <- function(id){
 
     })
 
+    # Travel summary statistics text output
     output$shipStatistics <- renderText({
 
-      sprintf(str_c("The maximum distance travelled by the ", input$ship_type_dropdown, " ship: ", input$ship_name_dd_selected,
-                    " was ", round(data_for_leaflet_map()[[1]]), " meters ", " from ",
-                    data_for_leaflet_map()[[2]]$DESTINATION[1], " to ", data_for_leaflet_map()[[2]]$DESTINATION[2], "."))
+      sprintf(str_c("The maximum distance travelled by the ",
+                    input$ship_type_dropdown, " ship: ",
+                    input$ship_name_dd_selected,
+                    " was ", round(data_for_leaflet_map()[[1]]),
+                    " meters ", " from ",
+                    data_for_leaflet_map()[[2]]$DESTINATION[1],
+                    " to ", data_for_leaflet_map()[[2]]$DESTINATION[2], "."))
 
 
 

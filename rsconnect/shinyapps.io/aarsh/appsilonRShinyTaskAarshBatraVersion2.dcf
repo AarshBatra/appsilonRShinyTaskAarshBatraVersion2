@@ -1,0 +1,13 @@
+name: appsilonRShinyTaskAarshBatraVersion2
+title: appsilonRShinyTaskAarshBatraVersion2
+username:
+account: aarsh
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3637968
+bundleId: 4244230
+url: https://aarsh.shinyapps.io/appsilonRShinyTaskAarshBatraVersion2/
+when: 1613725323.18686
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .Rbuildignore|DESCRIPTION|NAMESPACE|README.md|README.Rmd|data-raw/ships.csv|data-raw/ships_04112020.zip
