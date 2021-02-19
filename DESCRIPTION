@@ -1,15 +1,18 @@
-Package: appsilonRShinyTaskAarshBatraVersion2
-Title: What the Package Does (One Line, Title Case)
-Version: 0.0.0.9000
+Package: appsilonRShinyTaskAarshBatra
+Title: Displays maximum distance travelled by a given ship on a Leaflet Map.
+Version: 0.1.1.9000
 Authors@R: 
-    person(given = "First",
-           family = "Last",
+    person(given = "Aarsh",
+           family = "Batra",
            role = c("aut", "cre"),
-           email = "first.last@example.com",
+           email = "aarshbatra.in@gmail.com",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to
-    pick a license
+Description: Creates a leaflet map that shows the maximum distance travelled
+       for a given ship  as two markers on the map, with a line between them. 
+    This distance is calculated from the travel history data
+    (lon and lat coordinates) of that particular ship. A specific ship 
+    is selected using ship_type and ship_name filters.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
